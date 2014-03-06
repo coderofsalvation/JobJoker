@@ -15,15 +15,16 @@ Ext.onReady(function(){
    });
 
     var container = new Ext.TabPanel({
-            height: 500,
             activeTab: 0,
-            width: "98%",
+            height: "100%",
+            width: "100%",
             style: {
-                marginTop: 10,
-                marginLeft: 10,
+                marginTop: 0,
+                marginLeft: 0,
             },
             renderTo: Ext.getBody(),
             items:[jobsGrid,jobForm,workersGrid,workerForm]
         });
+    container.setSize( this.maxWidth, this.maxHeight );
 
 });

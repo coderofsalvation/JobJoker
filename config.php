@@ -12,5 +12,6 @@
     $auth = false;
     $user = 'jobjoker';
     $password = 'jobjoker';
+    $dont_restart_job_when_done = false; //  allows to (re)starting jobs when their status is 'done'/'error'/'stop'
 
 ?>

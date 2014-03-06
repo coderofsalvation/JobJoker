@@ -1,4 +1,5 @@
 <?php
+include_once("../config.php");
 
 class JobWriterController implements RestController {
 
@@ -22,17 +23,17 @@ class JobWriterController implements RestController {
             return $view;
         }
 
-        $id = sha1($req->worker.":".microtime(true));
+        $id = strlen($req->id) ? $req->id : sha1($req->worker.":".microtime(true));
         $worker = $req->worker;
         $status = 'idle';
         $parameters = json_encode($req->parameters);
 
         $ok = $insert->execute(array($id,$worker,$status,$parameters));
         if(!$ok) {
-            $view->success = false;
-            $view->message = implode("\n",$insert->errorinfo());
+          $view->success = false;
+          $view->message = implode("\n",$insert->errorinfo());
         } else {
-            $jobs = $db->query("select * from job where id = '".$id."'")->fetchAll(PDO::FETCH_ASSOC);
+          $jobs = $db->query("select * from job where id = '".$id."'")->fetchAll(PDO::FETCH_ASSOC);
         }
 
         $rest->setParameter("data",$jobs);
@@ -181,15 +182,14 @@ class JobWriterController implements RestController {
         }
         $job = $stmt->fetchObject();
 
-        if($job->status == "done" || $job->status == "error") {
+        if( $dont_restart_job_when_done && in_array( $job->status, array("done","error") ) ) {
             $view->success =false;
             $view->message ="Job has finished";
             return $view;
         }
-
-        if($status == "start" && $job->status == "idle") {
+        if($status == "start" && in_array( $job->status, array("idle","done","stop") ) ){
             exec($php." run.php ".$id." > /dev/null &");
-            $stmt = $db->prepare("UPDATE job SET starttime = ? where id = ?");
+            $stmt = $db->prepare("UPDATE job SET starttime = ?, stoptime = 0 where id = ?");
             $ok = $stmt->execute(array(microtime(true),$id));
         } else if($status == "stop" && $job->status == "active") {
             exec($kill." ".$job->pid);

@@ -6,6 +6,12 @@ var jobForm = new Ext.form.FormPanel({
         autoHeight: true,
         autoWeigth: true,
         items:[
+            new Ext.form.TextField({
+                    fieldLabel: "Name",
+                    emptyText: '',
+                    id: "JobName",
+                    width: 250,
+                }),
             new Ext.form.ComboBox({
                     mode: 'local',
                     fieldLabel:"Worker",
@@ -37,11 +43,12 @@ var jobForm = new Ext.form.FormPanel({
                     handler: function() {
                       var worker = Ext.getCmp('WorkerCombo').getRawValue();
                       var params = Ext.getCmp('Parameters').getValue();
+                      var name = Ext.getCmp('JobName').getValue();
                       if(params == null || params == "") {
                         params = "null";
                       }
                       var url    = "../jobs";
-                      var json   = '{"worker":"'+ worker+ '","parameters":'+ params +'}';
+                      var json   = '{"worker":"'+ worker+ '","parameters":'+ params +',"id":"'+ name +'"}';
                       if(worker != "") {
                           Ext.Ajax.request({
                                 url: url,
@@ -62,6 +69,7 @@ var jobsGrid = new Ext.grid.GridPanel({
         id: 'JobsGrid',
         colModel: new Ext.grid.ColumnModel({
                 columns: [
+                    {id: 'id',header:"Id",sortable:true,width:180},
                     {id: 'worker',header:"Worker",sortable:true,width:180},
                     {id: 'status',header:"Status",sortable:true,width:80},
                     new Ext.grid.DateColumn({
@@ -76,7 +84,7 @@ var jobsGrid = new Ext.grid.GridPanel({
         store: new Ext.data.JsonStore({
             idProperty: "id",
             root: "data",
-            fields: ['worker','status','starttime','stoptime','parameters','id'],
+            fields: ['id','worker','status','starttime','stoptime','parameters','id'],
             url: "../jobs",
             autoLoad: true
         }),
@@ -97,7 +105,9 @@ var jobsGrid = new Ext.grid.GridPanel({
                         method:"PUT",
                         params: "start",
                         success: function(response) {
-                            Ext.getCmp('JobsGrid').store.load()
+                            setTimeout( function(){ 
+                              Ext.getCmp('JobsGrid').store.load();
+                            }, 500 );
                         }});
                     }},
                  {text: "Stop",

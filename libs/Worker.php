@@ -46,7 +46,7 @@ abstract class Worker {
 
     public function stop() {
         $this->active = false;
-        $this->log('STOPED');
+        $this->log('STOPPED');
         $this->setStatus('stop');
         $this->setStopTime(time());
     }
@@ -59,7 +59,7 @@ abstract class Worker {
         $status_url = $this->getParameter("_api")."/jobs/".$this->getParameter("_id")."/status";
         switch($status) {
             case ACTIVE:
-                RestClient::put($status_url,$status,null,null,"text/plain");
+                $response = RestClient::put($status_url,$status,null,null,"text/plain");
                 break;
             case DONE:
                 RestClient::put($status_url,$status,null,null,"text/plain");
@@ -92,6 +92,7 @@ abstract class Worker {
 
     public function log($message) {
         if(is_string($message)) {
+            $message = "[".date("Y-m-d H:i:s",time())."] {$message}"; 
             $log_url = $this->getParameter("_api")."/jobs/".$this->getParameter("_id")."/log";
             RestClient::post($log_url,$message,null,null,"text/plain");
         }
