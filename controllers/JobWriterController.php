@@ -88,6 +88,7 @@ class JobWriterController implements RestController {
         $job_id = $rest->getRequest() ->getURI(2);
         $time = microtime(true);
         $message = $rest->getRequest()->getBody();
+        $message = "[".date("Y-m-d H:i:s",time())."] {$message}"; 
         $query = $stmnt->execute(array($id,$job_id,$time,$message));
         if(!$query) { 
             $view->success = false;

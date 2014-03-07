@@ -9,6 +9,59 @@ if(!isset($argv[1])) {
 include_once 'config.php';
 include_once 'libs/restserver/RestClient.class.php';
 
+/**
+ * throw exceptions based on E_* error types
+ */
+
+function severityToString( $err_severity ){
+  switch($err_severity)
+  {
+      case E_ERROR:             return "ERROR"; break;
+      case E_WARNING:           return "WARNING"; break;
+      case E_PARSE:             return "PARSE"; break;
+      case E_NOTICE:            return "NOTICE"; break;
+      case E_CORE_ERROR:        return "CORE_ERROR"; break;
+      case E_CORE_WARNING:      return "CORE_WARNING"; break;
+      case E_COMPILE_ERROR:     return "COMPILE_ERROR"; break;
+      case E_COMPILE_WARNING:   return "COMPILE_WARNING"; break;
+      case E_USER_ERROR:        return "USER_ERROR"; break;
+      case E_USER_WARNING:      return "USER_WARNING"; break;
+      case E_USER_NOTICE:       return "USER_NOTICE"; break;
+      case E_STRICT:            return "STRICT"; break;
+      case E_RECOVERABLE_ERROR: return "RECOVERABLE_ERROR"; break;
+      case E_DEPRECATED:        return "DEPRECATED"; break;
+      case E_USER_DEPRECATED:   return "USER_DEPRECATED"; break;
+  }
+}
+
+function notifyFatal()
+{
+    $error = error_get_last();
+    if ( $error["type"] == E_ERROR )
+        notifyError( $error["type"], $error["message"], $error["file"], $error["line"], array() );
+}
+
+function notifyError($err_severity, $err_msg, $err_file, $err_line, array $err_context)
+{
+  global $status_url, $log_url;
+  switch($err_severity)
+  {
+      case E_ERROR:             
+      case E_CORE_ERROR:        
+      case E_COMPILE_ERROR:     
+      case E_USER_ERROR: RestClient::put($status_url,"error",null,null,"text/plain"); break;
+  }
+  $message = basename($err_file).":".sprintf("%-5s",$err_line).":".
+             sprintf("%-8s",severityToString($err_severity)) . 
+             ": {$err_msg}";
+  RestClient::post($log_url,$message,null,null,"text/plain");
+  return true;
+}
+
+// set the errorhandler
+set_error_handler("notifyError", E_ALL);
+register_shutdown_function( "notifyFatal" );
+
 $request = RestClient::get($api."/jobs/".$argv[1]);
 $data = json_decode($request->getResponse());
 if(count($data->data) < 1) {
@@ -16,16 +69,31 @@ if(count($data->data) < 1) {
     exit;
 }
 
+// get worker data
 RestClient::put($api."/jobs/".$argv[1]."/pid",getmypid(),null,null,"text/plain");
-
 $work = $data->data[0];
-
 $class = $work->worker ;
-$parameters = json_decode($work->parameters);
+$parameters = (object) json_decode($work->parameters);
 $parameters->_id = $work->id;
 $parameters->_api = $api;
+$log_url    = $api."/jobs/".$work->id."/log";
+$status_url = $api."/jobs/".$work->id."/status";
 
-include "workers_files/".$class.".php";
+// try including worker file
+$file  = "workers_files/".$class.".php";
+
+if( !file_exists($file) ){
+  RestClient::put($status_url,"error",null,null,"text/plain");
+  RestClient::post($log_url,"could not include \"{$file}\"..aborting",null,null,"text/plain");
+  exit(1);
+}else include_once($file);
+
+// try creating class
+if( !class_exists($class) ){
+  RestClient::put($status_url,"error",null,null,"text/plain");
+  RestClient::post($log_url,"could not create \"{$class}\"..aborting",null,null,"text/plain");
+  exit(1);
+}
 
 $worker = new $class ;
 $worker->setParameters($parameters);

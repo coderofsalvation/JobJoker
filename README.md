@@ -7,7 +7,8 @@ I made some additions which makes the awesome JobJoker more suitable for scraper
 * which means more readable id's for restcalls (and shown in Job overview) 
 * improved logs (contains datetime)
 * lazy loading of status (many times job stayed on 'idle' in userinterface, while already 'active') 
-* fullscreen UI
+* fullscreen UI (added Ext viewport so sticky footer resizes automatically)
+* job overview automatically refreshes every 5 secs
 
 Issues: 
 

@@ -92,7 +92,6 @@ abstract class Worker {
 
     public function log($message) {
         if(is_string($message)) {
-            $message = "[".date("Y-m-d H:i:s",time())."] {$message}"; 
             $log_url = $this->getParameter("_api")."/jobs/".$this->getParameter("_id")."/log";
             RestClient::post($log_url,$message,null,null,"text/plain");
         }

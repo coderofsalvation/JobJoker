@@ -63,7 +63,6 @@ var jobForm = new Ext.form.FormPanel({
 
 var jobsGrid = new Ext.grid.GridPanel({ 
         width: 800,
-        height: 420,
         border: true,
         title: "Manage Jobs",
         id: 'JobsGrid',
@@ -161,7 +160,7 @@ var jobsGrid = new Ext.grid.GridPanel({
                       }
                       wLog = new Ext.Window({
                             title: "Job log",
-                            width: 500,
+                            width: "80%",
                             height: 450,
                             layout: 'fit',
                             plain: true,
@@ -210,3 +209,10 @@ var jobsGrid = new Ext.grid.GridPanel({
                  }},
              ]
     });
+
+    // reload every five seconds
+    setInterval( function(){ 
+      window.jobsLoading.disable(); // prevent flashing of loading screen
+      Ext.getCmp('JobsGrid').store.load();
+      window.jobsLoading.enable();
+    }, 5000 );
