@@ -44,24 +44,25 @@ $rest->setParameter("kill_command",$kill_command);
 $rest->addMap('GET','/','View');
 
 $rest->addMap('GET',"/workers","WorkerController::workers");
-$rest->addMap('GET',"/workers/[\d\w]+","WorkerController::worker");
-$rest->addMap('GET',"/workers/[\d\w]+/code","WorkerController::codeWorker");
+$rest->addMap('GET',"/workers/[A-Za-z0-9_-]+","WorkerController::worker");
+$rest->addMap('GET',"/workers/[A-Za-z0-9_-]+/code","WorkerController::codeWorker");
 
-$rest->addMap('PUT',"/workers/[\d\w]+","WorkerController::putWorker");
-$rest->addMap('DELETE',"/workers/[\d\w]+","WorkerController::deleteWorker");
+$rest->addMap('PUT',"/workers/[A-Za-z0-9_-]+","WorkerController::putWorker");
+$rest->addMap('DELETE',"/workers/[A-Za-z0-9_-]+","WorkerController::deleteWorker");
 
 $rest->addMap('GET',"/jobs",'JobReaderController::jobs');
-$rest->addMap('GET',"/jobs/[\d\w]+",'JobReaderController::job');
-$rest->addMap('GET',"/jobs/[\d\w]+/log",'JobReaderController::jobLog');
-$rest->addMap('GET',"/jobs/[\d\w]+/status",'JobReaderController::jobStatus');
-$rest->addMap('GET',"/jobs/[\d\w]+/response",'JobReaderController::jobResponse');
+$rest->addMap('GET',"/jobs/[A-Za-z0-9_-]+",'JobReaderController::job');
+$rest->addMap('GET',"/jobs/[A-Za-z0-9_-]+/log",'JobReaderController::jobLog');
+$rest->addMap('GET',"/jobs/[A-Za-z0-9_-]+/status",'JobReaderController::jobStatus');
+$rest->addMap('GET',"/jobs/[A-Za-z0-9_-]+/response",'JobReaderController::jobResponse');
 
 $rest->addMap('POST',"/jobs",'JobWriterController::jobs');
-$rest->addMap('DELETE',"/jobs/[\d\w]+",'JobWriterController::job');
-$rest->addMap('PUT',"/jobs/[\d\w]+/pid",'JobWriterController::jobPid');
-$rest->addMap('POST',"/jobs/[\d\w]+/log",'JobWriterController::jobLog');
-$rest->addMap('PUT' ,"/jobs/[\d\w]+/status",'JobWriterController::jobStatus');
-$rest->addMap('POST',"/jobs/[\d\w]+/response",'JobWriterController::jobResponse');
+$rest->addMap('DELETE',"/jobs/[A-Za-z0-9_-]+",'JobWriterController::job');
+$rest->addMap('PUT',"/jobs/[A-Za-z0-9_-]+/pid",'JobWriterController::jobPid');
+$rest->addMap('PUT',"/jobs/[A-Za-z0-9_-]+/parameters",'JobWriterController::jobParameters');
+$rest->addMap('POST',"/jobs/[A-Za-z0-9_-]+/log",'JobWriterController::jobLog');
+$rest->addMap('PUT' ,"/jobs/[A-Za-z0-9_-]+/status",'JobWriterController::jobStatus');
+$rest->addMap('POST',"/jobs/[A-Za-z0-9_-]+/response",'JobWriterController::jobResponse');
 
 echo $rest->execute();
 

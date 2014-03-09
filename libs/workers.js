@@ -32,13 +32,31 @@ var workerForm = new Ext.form.FormPanel({
                                 method:"PUT",
                                 params: worker,
                                 success: function() {Ext.getCmp('WorkersGrid').store.load();
-                                                     Ext.getCmp('WorkerCombo').store.load()},
+                                                     Ext.getCmp('WorkerCombo').store.load()
+                                },
                           });
                       }
                     }
                 })
         ]
     });
+
+var crontabForm = new Ext.form.FormPanel({
+        title: "Crontab",
+        frame: true,
+        autoHeight: true,
+        autoWeigth: true,
+        items:[
+            new Ext.form.TextArea({
+                    fieldLabel: "Current Crontab",
+                    emptyText: '',
+                    id: "CrontabCode",
+                    width: 450,
+                    height:250,
+                })
+        ]
+    });
+
 
 var workersGrid = new Ext.grid.GridPanel({ 
         width: 800,

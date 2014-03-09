@@ -9,6 +9,24 @@ if(!isset($argv[1])) {
 include_once 'config.php';
 include_once 'libs/restserver/RestClient.class.php';
 
+/*
+ * basic email function
+ */
+    
+function sendMail($to, $subject, $message, $emailFrom = "", $emailFromName = ""){
+  global $config;
+  if( !strlen($emailFrom) ) $emailFrom = $config->maintainerEmailFrom;
+  if( !strlen($emailFromName) ) $emailFromName = $config->maintainerEmailFrom;
+  $headers   = array();
+  $headers[] = "MIME-Version: 1.0";
+  $headers[] = "Content-type: text/plain; charset=iso-8859-1";
+  $headers[] = "From: {$emailFromName} <{$emailFrom}>";
+  $headers[] = "Reply-To: {$emailFromName} <{$emailFrom}>";
+  $headers[] = "Subject: {$subject}";
+  $headers[] = "X-Mailer: PHP/".phpversion();
+  mail($to, $subject, $message, implode("\r\n", $headers));
+}
+
 /**
  * throw exceptions based on E_* error types
  */
@@ -43,7 +61,6 @@ function notifyFatal()
 
 function notifyError($err_severity, $err_msg, $err_file, $err_line, array $err_context)
 {
-  global $status_url, $log_url;
   switch($err_severity)
   {
       case E_ERROR:             
@@ -62,6 +79,10 @@ function notifyError($err_severity, $err_msg, $err_file, $err_line, array $err_c
 set_error_handler("notifyError", E_ALL);
 register_shutdown_function( "notifyFatal" );
 
+/*
+ * lets go
+ */
+
 $request = RestClient::get($api."/jobs/".$argv[1]);
 $data = json_decode($request->getResponse());
 if(count($data->data) < 1) {
@@ -74,10 +95,14 @@ RestClient::put($api."/jobs/".$argv[1]."/pid",getmypid(),null,null,"text/plain")
 $work = $data->data[0];
 $class = $work->worker ;
 $parameters = (object) json_decode($work->parameters);
+$parameters->_scheduler = $work->scheduler;
 $parameters->_id = $work->id;
 $parameters->_api = $api;
 $log_url    = $api."/jobs/".$work->id."/log";
 $status_url = $api."/jobs/".$work->id."/status";
+
+if( $work->status == 'error' || ($work->scheduler != "none" && $work->status == "stop" ) ) 
+  exit(0); // dont repeat errors or stopped scheduler
 
 // try including worker file
 $file  = "workers_files/".$class.".php";

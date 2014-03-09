@@ -14,6 +14,14 @@ Ext.onReady(function(){
          success: function(r) {Ext.getCmp("WorkerCode").setValue(r.responseText)},
     });
 
+    Ext.apply(Ext.form.VTypes, {
+        ValidId: function(v) {
+            return /[A-Za-z0-9_-]/i.test(v);
+        },
+        NospaceText: "Please use only alphanumeric characters, dash and underscore"
+    });
+
+
     var viewport = new Ext.Viewport({
       layout: 'fit',
       renderTo: Ext.getBody(),

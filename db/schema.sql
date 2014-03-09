@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS job (
     starttime long,
     stoptime long,
     status varchar(220),
+    scheduler enum('none','crontab','repeat') NOT NULL default 'none',
     parameters text,
     primary key (id)
 ); 
