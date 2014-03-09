@@ -13,13 +13,17 @@ checkRequirements(){
   return 0
 }
 
+patchconfig(){
+  sed -i "s|.*'$1'.*|  '$1' => $2,|g" ../config.php 
+}
+
 # <email> - configures the email of maintainer + smtppassword
 setemail(){
   cd $SELF_PATH;
   if [[ ! -n "$1" ]]; then 
     read -p "enter your emailaddress (example: array('my@email.com') ): " email
   else email="$1"; fi
-  sed -i "s|.*'maintainerEmails'.*|'maintainerEmails' => $email,|g" ../config.php 
+  patchconfig maintainerEmails "$email"
 }
 
 # <domain> - configures the domain 
@@ -28,12 +32,12 @@ sethost(){
   if [[ ! -n "$1" ]]; then 
     read -p "enter the address ('http:// your.domain.com/subdir') eg. where application can be accessed from the web: " host
   else host="$1"; fi
-  sed -i "s|.*'api'.*|  'api' => '$host',|g" ../config.php 
+  patchconfig api "'$host'"
 }
 
 # <dbuser> <dbpw> <dbname> - updates the db settings 
 setdb(){
-  cd $SELF_PATH/src/cli;
+  cd $SELF_PATH;
   if [[ ! -n "$3" ]]; then 
     read -p "enter mysql dbuser: " dbuser 
     read -p "enter mysql password: " dbpw 
@@ -41,9 +45,9 @@ setdb(){
   else 
     dbuser="$1"; dbpw="$2"; dbname="$3";
   fi
-  sed -i "s|.*'mysql_database'.*|  'mysql_database' => '$dbname',|g" ../config.php 
-  sed -i "s|.*'mysql_password'.*|  'mysql_password' => '$dbpw',|g" ../config.php 
-  sed -i "s|.*'mysql_user'.*|  'mysql_user' => '$dbuser',|g" ../config.php 
+  patchconfig mysql_database "'$dbname'"
+  patchconfig mysql_user "'$dbuser'"
+  patchconfig mysql_password "'$dbpw'"
   if ! mysql -u $dbuser -p$dbpw $dbname -e "select database();" ; then 
     if mysql -u $dbuser -p$dbpw -e "create database $dbname;"; then 
       echo "[x] created database '$dbname'"
@@ -57,33 +61,10 @@ setdb(){
   return 0
 }
 
-# importdbs databasestructure and other patches in /custom/install
-importdb(){
-  cd $SELF_PATH/src 
-  #cd cli;
-  #dbuser=$(./config.php get ../data/database.xml /config/database/user)
-  #dbpw=$(./config.php get ../data/database.xml /config/database/password)
-  #dbname=$(./config.php get ../data/database.xml /config/database/database)
-  #cd ..
-  ## import structure
-  #files=$(ls update/v* | sort -n -t ".")
-  #for file in $files; do 
-  #  echo "[x] importing to db: '$file'"
-  #  mysql -u $dbuser -p$dbpw $dbname < $file
-  #done
-  ## import updates
-  #files=$(ls update/r* | sed 's|.*/r||g;s/\.sql//g' | sort -h)
-  #for file in $files; do 
-  #  echo "[x] importing to db: 'update/$file.sql'"
-  #  mysql -u $dbuser -p$dbpw $dbname < update/r$file.sql 
-  #done
-  return 0
-}
-
 # checks if the application ready to test
 checksanity(){
   printf "[x] testing mental health of application: "
-  cd $SELF_PATH/src;
+  cd $SELF_PATH/..;
   php index.php &>/dev/null && printf "sane!\n" && return 0;
 
   printf "insane! :(\n\nwe strongly advice you to do one of the following things:\n"
@@ -93,49 +74,10 @@ checksanity(){
   return 1
 }
 
-buildplugins(){
-  cd $SELF_PATH/src;
-  echo "[x] building plugins"
-  ls plugin/plugins/*/install/build | while read file; do 
-    echo "=> $file"
-    cd "$(dirname "$file")"; ./"$(basename "$file")"
-  done
-}
-
-# sets /data dir writable
-setpermissions(){
-  cd $SELF_PATH
-  echo "[x] setting permissions"
-  ok=0
-  chmod 777 -R src/{data,data/log,etc} &>/dev/null || ok=1
-  chmod 777 -R src/test/bugs &>/dev/null || ok=1
-  [[ $ok == 1 ]] && echo "[x] hmm..trying again with sudo" && sudo chmod 777 -R src/{etc,data} && ok=0
-  [[ $ok == 1 ]] && echo "[E] no luck!..aborting"
-  return 0
-}
-
 # build all subcommands (interactive, easy starting point)
 autobuild(){
-  createconfig && setpreset && setdomain && setrootpath && setdb && setemail && setpermissions && buildplugins && checksanity &&
+  setemail && sethost && setdb 
   [[ $? == 1 ]] && echo "[E] error occured..aborting"
-}
-
-# let billyrazzi join channels  
-addchannels(){
-  [[ ! -d /opt/iirazzy ]] && { echo "billrazzi not found"; return 1; }
-  cd $SELF_PATH/src/cli 
-  preset="$(./config.php json get ../etc/Config.json "preset" )"
-  billyrazzipath="$(./config.php json get ../etc/Config.json "presets->$preset->logging->billyrazzi->path")"
-  ./listchannels | while read channel; do # for every channel 
-    channel="#$channel" 
-    find "$billyrazzipath/irc/" -mindepth 1 -maxdepth 1 -type d| while read file; do # make a symlink to each networkchannel
-      channel="${channel/plugin/}"
-      channeldir="$file/$channel"; pipedir="$(echo "$file" | sed 's|/irc/|/pipes/|g' )" 
-      echo "installing billyrazzi pipe $channel"
-      [[ ! -d "$pipedir/$channel" ]] && mkdir "$pipedir/$channel"
-      ln -fs $SELF_PATH/src/cli/billyrazzi/pipe.satellite "$pipedir/$channel/."
-    done
-  done
 }
 
 _usage(){
@@ -151,4 +93,3 @@ if checkRequirements; then
 fi
 
 # vim: set foldingmethod=marker
-#
