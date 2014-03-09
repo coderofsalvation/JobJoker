@@ -26,6 +26,9 @@ I added a simple bashscript 'build' for monkeypatching config.php e.g. (handy fo
     cli/build setemail "array('my@email.com')"
     cli/build sethost "http://somedomain.com/worker"
     cli/build setdb mylogin mypasswd mydbname 
+    cli/build patchconfig auth "true"
+    cli/build patchconfig user "'test'"
+    cli/build patchconfig password "'test'"
     cli/build checksanity
 
 ### Why JobJoker?
