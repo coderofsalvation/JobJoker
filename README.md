@@ -8,13 +8,14 @@ I made some additions which makes the awesome JobJoker more suitable for scraper
 * improved logs (contains datetime and also shows php errors)
 * lazy loading of status (many times job stayed on 'idle' in userinterface, while already 'active') 
 * fullscreen UI (added Ext viewport so sticky footer resizes automatically)
-* job overview automatically refreshes every 5 secs
+* job overview automatically refreshes every 5 secs, removed reload-button
 * receive errormail when worker triggered error or uncaught exception (defined in config)
 * added extra restcall: PUT /jobs/job-id/parameters
 * therefore you can now edit/validate the json parameters using the webinterface or any other REST-capable device
 * allowed characters for id are now: [A-Za-z0-9_-]
 * validation of those characters in the webinterface
 * added 3 types of scheduling when adding job: none, crontab, repeat (with optional sleep)
+* introduced insertion of json parameter-template when added (can be added later using the parameterbutton)
 
 ### Why JobJoker?
 

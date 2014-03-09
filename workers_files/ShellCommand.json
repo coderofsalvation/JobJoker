@@ -1,0 +1,5 @@
+{
+  "command": "ls -la",
+  "crontab": "*/5 * * * *",
+  "repeat_sleep_seconds": 5
+}

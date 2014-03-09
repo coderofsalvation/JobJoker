@@ -1,0 +1,17 @@
+#!/bin/bash 
+SELF_PATH="$(dirname "$(readlink -f "$0")" )";
+TMPFILE="/tmp/jobjoker.$(whoami)"
+cd "$SELF_PATH"
+
+API="$(grep "'api'" config.php | sed 's/.*=> //g;s/[",]// g')"
+
+format_json(){
+  cat - | sed 's/\[/\[\n/g;s/{/{\n/g;s/",/",\n/g;s/\]/\]\n/g'
+}
+
+[[ ! -n "$2" ]] && { echo "Usage: ./jobjoker <GET|POST|PUT> <urlslug> <data>"; exit 1; }
+method="$1"
+echo "[$method $API/$2] => output:"
+[[ -n "$3" ]] && data="--data '$3'" || data=""
+curl -X $method -s "$API/$2" ${data} | format_json 
+#rm $TMPFILE.*

@@ -27,7 +27,7 @@ class WorkerController implements RestController {
     public function workers(RestServer $rest) {
         $workers = array();
         foreach(new DirectoryIterator('workers_files') as $file) {
-            if(strpos($file->getFileName(),".") == 0) continue;
+            if(strpos($file->getFileName(),".") == 0 || !strstr($file->getFilename(),".php") ) continue;
             $class = str_replace(".php","",$file->getFilename());
             $worker = new StdClass;
             $worker->name = $class ;

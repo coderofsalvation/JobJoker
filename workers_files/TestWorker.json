@@ -1,0 +1,4 @@
+{
+  "crontab": "*/5 * * * *",
+  "repeat_sleep_seconds": 5
+}

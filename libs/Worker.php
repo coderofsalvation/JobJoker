@@ -31,16 +31,15 @@ abstract class Worker {
         $this->setStartTime(time());
         try {
             $this->setStatus('active');
-$this->log( "flop");
-$this->log( $this->getParameter("_scheduler") );
             switch( $this->getParameter("_scheduler") ){ // singleshot or run forever?
               case "none":    $this->run(); $this->setStatus('done'); break;
               case "crontab": $this->run(); $this->setStatus('idle'); break;
               case "repeat":  while( $this->isActive() ){ 
+                                $this->setStatus('active');
                                 $this->run(); 
+                                $this->setStopTime(time());
                                 sleep( $this->getParameter("repeat_sleep_seconds") ); 
                               }; 
-                              $this->setStatus('idle');
                               break;
             }
         } catch (Exception $e) {
@@ -66,7 +65,7 @@ $this->log( $this->getParameter("_scheduler") );
         if( !$this->active ) return;
         $this->active = false;
         $this->log('STOPPED');
-        $this->setStatus( $this->getParameter("_scheduler") == "none" ? "stop" : "idle" );
+        $this->setStatus( $this->getParameter("_scheduler") == "crontab" ? "idle" : "stop" );
         $this->setStopTime(time());
     }
 

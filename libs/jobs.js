@@ -28,7 +28,10 @@ var jobForm = new Ext.form.FormPanel({
                     forceSelection: true,
                     id: 'WorkerCombo',
                     width: 250,
-                    emptyText: "",
+                    typeAhead: true,
+                    triggerAction: 'all',
+                    emptyText:'Select',
+                    selectOnFocus:false,
                     store: new Ext.data.JsonStore({
                         idProperty: "name",
                         root: "data",
@@ -47,13 +50,13 @@ var jobForm = new Ext.form.FormPanel({
                     selectOnFocus:false,
                 }),
 
-            new Ext.form.TextArea({
-                    fieldLabel: "Parameters<br />(json string)",
-                    emptyText: '{\n  "crontab": "*/5 * * * *"\n  "repeat_sleep_seconds": 300\n}',
-                    id: "Parameters",
-                    width: 450,
-                    height:250,
-                }),
+            //new Ext.form.TextArea({
+            //        fieldLabel: "Parameters<br />(json string)",
+            //        emptyText: '{\n  "crontab": "*/5 * * * *"\n  "repeat_sleep_seconds": 300\n}',
+            //        id: "Parameters",
+            //        width: 450,
+            //        height:250,
+            //    }),
         ],
         buttons:[
             new Ext.Button({
@@ -61,17 +64,17 @@ var jobForm = new Ext.form.FormPanel({
                     handler: function() {
                       var worker = Ext.getCmp('WorkerCombo').getRawValue();
                       var scheduler = Ext.getCmp('SchedulerCombo').getRawValue();
-                      var params = Ext.getCmp('Parameters').getValue();
                       var name = Ext.getCmp('JobName').getValue();
-                      if(params == null || params == "") {
-                        params = "null";
-                      }
+                      //var params = Ext.getCmp('Parameters').getValue();
+                      //if(params == null || params == "") {
+                      //  params = "null";
+                      //}
                       var url    = "../jobs";
-                      var json   = '{"worker":"'+ worker+ '","parameters":'+ params +',"id":"'+ name +'","scheduler":"'+scheduler+'"}';
+                      var json   = {"worker": worker, "id": name, "scheduler": scheduler };
                       if(worker != "") {
                           Ext.Ajax.request({
                                 url: url,
-                                params: json,
+                                params: Ext.util.JSON.encode(json),
                                 success: function() {Ext.getCmp('JobsGrid').store.load()},
                           });
                       }
@@ -88,8 +91,8 @@ var jobsGrid = new Ext.grid.GridPanel({
         colModel: new Ext.grid.ColumnModel({
                 columns: [
                     {id: 'id',header:"Id",sortable:true,width:180},
-                    {id: 'worker',header:"Worker",sortable:true,width:180},
                     {id: 'status',header:"Status",sortable:true,width:80},
+                    {id: 'worker',header:"Worker",sortable:true,width:180},
                     {id: 'scheduler',header:"Scheduler",sortable:true,width:80},
                     new Ext.grid.DateColumn({
                         id: 'starttime',header:"Start time",sortable:true,width:130,
@@ -103,7 +106,7 @@ var jobsGrid = new Ext.grid.GridPanel({
         store: new Ext.data.JsonStore({
             idProperty: "id",
             root: "data",
-            fields: ['id','worker','status','scheduler','starttime','stoptime','parameters','id'],
+            fields: ['id','status','worker','scheduler','starttime','stoptime','parameters','id'],
             url: "../jobs",
             autoLoad: true
         }),
@@ -114,7 +117,7 @@ var jobsGrid = new Ext.grid.GridPanel({
                 }
         }),
         buttons: [
-                 {text: "Reload", handler: function() {Ext.getCmp('JobsGrid').store.load()}},
+                 // {text: "Reload", handler: function() {Ext.getCmp('JobsGrid').store.load()}},
                  {text: "Start",
                     handler: function(){
                       var job = Ext.getCmp('JobsGrid').getSelectionModel().getSelected();

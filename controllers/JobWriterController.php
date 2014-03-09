@@ -15,7 +15,7 @@ class JobWriterController implements RestController {
         
         $req = json_decode($rest->getRequest()->getBody());
 
-        $sql = "insert into job (id,worker,status,parameters,scheduler) values (?,?,?,?,?)";
+        $sql = "insert into job (id,worker,status,scheduler,parameters) values (?,?,?,?,?)";
         $insert = $db->prepare($sql);
         if(!$insert) {
             $view->success = false;
@@ -23,19 +23,22 @@ class JobWriterController implements RestController {
             return $view;
         }
 
+        $jsonTemplate = dirname(__FILE__)."/../workers_files/".$req->worker.".json";
         $id = strlen($req->id) ? $req->id : sha1($req->worker.":".microtime(true));
         $worker = $req->worker;
-        $status = 'idle';
-        $parameters = json_encode($req->parameters);
+        $status = 'stop';
         $scheduler = $req->scheduler;
+        $parameters = is_file($jsonTemplate) ? file_get_contents($jsonTemplate) : "";
+        $view->message = $jsonTemplate;
 
-        $ok = $insert->execute(array($id,$worker,$status,$parameters,$scheduler));
+        $ok = $insert->execute(array($id,$worker,$status,$scheduler,$parameters));
         if(!$ok) {
           $view->success = false;
           $view->message = implode("\n",$insert->errorinfo());
         } else {
           $jobs = $db->query("select * from job where id = '".$id."'")->fetchAll(PDO::FETCH_ASSOC);
         }
+        $this->updateCron($rest);
         $rest->setParameter("data",$jobs);
         return $view;
     }
@@ -75,7 +78,6 @@ class JobWriterController implements RestController {
             $stmnt = $db->prepare("DELETE FROM response WHERE job_id = ?");
             $query = $stmnt->execute(array($id));
         }
-        exec("id && ".$php." cron.php", $stdout); // update cron
 
         $rest->setParameter("data",$jobs);
         return $view;
@@ -200,7 +202,7 @@ class JobWriterController implements RestController {
         } else {
           $jobs = $stmnt->fetchAll();
         }
-        exec("id && ".$php." cron.php", $stdout); // update cron
+        $this->updateCron($rest);
         $view->message = $stdout;
         $rest->setParameter("data",$jobs);
         return $view;
@@ -233,11 +235,12 @@ class JobWriterController implements RestController {
         if($status == "start" && in_array( $job->status, array("idle","done","stop") ) ){
             $stmt = $db->prepare("UPDATE job SET starttime = ?, status = ?, stoptime = 0 where id = ?");
             $ok = $stmt->execute(array(microtime(true),"idle",$id));
-            if( $job->scheduler != "crontab" ) exec($php." run.php ".$id." > /dev/null &");
+            if( $job->scheduler == "crontab" ) $this->updateCron($rest);
+            else exec($php." run.php ".$id." > /dev/null &");
         } else if($status == "stop" && in_array($job->status,array("active","idle") ) ) {
             exec($kill." ".$job->pid);
-            $stmt = $db->prepare("UPDATE job SET stoptime = ? where id = ?");
-            $ok = $stmt->execute(array(microtime(true),$id));
+            $stmt = $db->prepare("UPDATE job SET stoptime = ?,status = ? where id = ?");
+            $ok = $stmt->execute(array(microtime(true),$status,$id));
         } else if($status == "kill") {
             exec($kill." -9 ".$job->pid);
             $stmt = $db->prepare("UPDATE job SET stoptime = ? where id = ?");
@@ -337,6 +340,10 @@ class JobWriterController implements RestController {
       return $result;
     }
 
+    private function updateCron(RestServer $rest){
+      $php  = $rest->getParameter("php_command");
+      exec($php." cron.php", $stdout); // update cron
+    }
 
 }
 ?>

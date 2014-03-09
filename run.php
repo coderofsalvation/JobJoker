@@ -61,6 +61,7 @@ function notifyFatal()
 
 function notifyError($err_severity, $err_msg, $err_file, $err_line, array $err_context)
 {
+  global $log_url;
   switch($err_severity)
   {
       case E_ERROR:             
@@ -101,8 +102,8 @@ $parameters->_api = $api;
 $log_url    = $api."/jobs/".$work->id."/log";
 $status_url = $api."/jobs/".$work->id."/status";
 
-if( $work->status == 'error' || ($work->scheduler != "none" && $work->status == "stop" ) ) 
-  exit(0); // dont repeat errors or stopped scheduler
+if( $work->status == 'error' || ($work->scheduler == "crontab" && $work->status == "stop" ) ) 
+  exit(0); // dont repeat errors or cheat on crontab 
 
 // try including worker file
 $file  = "workers_files/".$class.".php";
