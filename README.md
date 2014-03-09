@@ -17,6 +17,17 @@ I made some additions which makes the awesome JobJoker more suitable for scraper
 * added 3 types of scheduling when adding job: none, crontab, repeat (with optional sleep)
 * introduced insertion of json parameter-template when added (can be added later using the parameterbutton)
 
+### monkeypatch buildtool
+
+I added a simple bashscript 'build' for monkeypatching config.php e.g. (handy for automatic serverdeployment using githooks):
+
+    #!/bin/bash 
+    echo "[x] configuring application"
+    cli/build setemail "array('my@email.com')"
+    cli/build sethost "http://somedomain.com/worker"
+    cli/build setdb mylogin mypasswd mydbname 
+    cli/build checksanity
+
 ### Why JobJoker?
 
 Well, there are many worker/job management packages for php.
