@@ -38,6 +38,7 @@ abstract class Worker {
                                 $this->setStatus('active');
                                 $this->run(); 
                                 $this->setStopTime(time());
+                                $this->log("sleeping ".$this->getParameter("repeat_sleep_seconds")." secs..");
                                 sleep( $this->getParameter("repeat_sleep_seconds") ); 
                               }; 
                               break;
