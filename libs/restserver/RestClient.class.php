@@ -16,6 +16,12 @@ class RestClient {
      private $contentType = null;
      private $file =null;
 
+     /*
+      * global http auth override
+      */
+     public static $user = null;
+     public static $password = null;
+
      /**
       * Private Constructor, sets default options
       */
@@ -313,6 +319,8 @@ class RestClient {
       * @return RestClient
       */
      public static function call($method,$url,$body,$user=null,$password=null,$contentType=null) {
+         $user     = ( $user     == null ) ? self::$user     : $user;
+         $password = ( $password == null ) ? self::$password : $password;
          return self::createClient($url)
              ->setParameters($body)
              ->setMethod($method)

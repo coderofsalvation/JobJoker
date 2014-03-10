@@ -8,6 +8,10 @@ if(!isset($argv[1])) {
 
 include_once 'config.php';
 include_once 'libs/restserver/RestClient.class.php';
+if ( $config->auth  ){
+  RestClient::$user = $config->user;
+  RestClient::$password = $config->password;
+}
 
 /*
  * basic email function

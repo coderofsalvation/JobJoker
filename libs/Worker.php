@@ -73,7 +73,7 @@ abstract class Worker {
         return $this->active ;
     }
 
-    private function setStatus($status) {
+    public function setStatus($status) {
         $status_url = $this->getParameter("_api")."/jobs/".$this->getParameter("_id")."/status";
         $this->log("setting status '{$status}'");
         switch($status) {
