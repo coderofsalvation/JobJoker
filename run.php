@@ -65,7 +65,7 @@ function notifyFatal()
 
 function notifyError($err_severity, $err_msg, $err_file, $err_line, array $err_context)
 {
-  global $log_url;
+  global $log_url,$status_url;
   switch($err_severity)
   {
       case E_ERROR:             
