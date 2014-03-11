@@ -36,11 +36,11 @@ abstract class Worker {
         $this->active = true;
         $this->setStartTime(time());
         try {
-            $this->onEvent("validateConfig", $this->parameters );
             $this->setStatus('active');
+            $this->init();
             switch( $this->getParameter("_scheduler") ){ // singleshot or run forever?
-              case "none":    $this->run(); $this->setStatus('done'); break;
-              case "crontab": $this->run(); $this->setStatus('idle'); break;
+              case "none":    $this->run(); $this->destroy(); $this->setStatus('done'); break;
+              case "crontab": $this->run(); $this->destroy(); $this->setStatus('idle'); break;
               case "repeat":  while( $this->isActive() ){ 
                                 $this->setStatus('active');
                                 $this->run(); 
@@ -48,6 +48,7 @@ abstract class Worker {
                                 $this->log("sleeping ".$this->getParameter("repeat_sleep_seconds")." secs..");
                                 sleep( $this->getParameter("repeat_sleep_seconds") ); 
                               }; 
+                              $this->destroy();
                               break;
             }
         } catch (Exception $e) {
