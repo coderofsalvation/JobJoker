@@ -20,6 +20,12 @@ abstract class Worker {
         return $this;
     }
 
+    protected function setParameter($parameter, $value){
+        $this->parameters->$parameter = $value;  
+        return $this;
+    }
+
+
     public function getParameter($parameter) {
         return $this->parameters->$parameter;
     }
