@@ -36,6 +36,7 @@ abstract class Worker {
         $this->active = true;
         $this->setStartTime(time());
         try {
+            $this->onEvent("validateConfig", $this->parameters );
             $this->setStatus('active');
             switch( $this->getParameter("_scheduler") ){ // singleshot or run forever?
               case "none":    $this->run(); $this->setStatus('done'); break;
@@ -128,6 +129,7 @@ abstract class Worker {
     }
 
     public abstract function run() ;
+    public abstract function onEvent($event,$data);
     public abstract function getInformation();
 
 }
