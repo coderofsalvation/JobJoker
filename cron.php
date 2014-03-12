@@ -25,7 +25,7 @@ function patch_crontab(){
 function generate_crontab(){
 	global $pdo, $marker, $config;
 	$jobs    = array();
-	$stmnt   = $pdo->prepare("SELECT * FROM job WHERE parameters LIKE ?");
+	$stmnt   = $pdo->prepare("SELECT * FROM job WHERE scheduler = 'crontab' and parameters LIKE ?");
 	$query   = $stmnt->execute( array('%crontab%') );
 	$jobs    = $stmnt->fetchAll();
 	$crontab = array( $marker );
